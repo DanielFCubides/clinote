@@ -61,17 +61,20 @@ func findNotes(cmd *cobra.Command, args []string) {
 	filter.Order = clinote.NoteFilterOrderUpdated
 	c, err := cmd.Flags().GetInt("count")
 	if err != nil {
-		fmt.Println("Error when parsing count value, using default:", err)
+		fmt.Printf("⚠️  Invalid count value, using default (20): %v\n", err)
+		fmt.Println("💡 Tip: Use --count 50 or -c 50 (must be a positive number)")
 		c = 20
 	}
 	searchBook, err := cmd.Flags().GetString("notebook")
 	if err != nil {
-		fmt.Println("Error when parsing notebook:", err)
+		fmt.Printf("❌ Invalid notebook parameter: %v\n", err)
+		fmt.Println("💡 Tip: Use --notebook \"Notebook Name\" or -b \"Notebook Name\"")
 		return
 	}
 	search, err := cmd.Flags().GetString("search")
 	if err != nil {
-		fmt.Println("Error when parsing search term", err)
+		fmt.Printf("❌ Invalid search parameter: %v\n", err)
+		fmt.Println("💡 Tip: Use --search \"search terms\" or -s \"search terms\"")
 		return
 	}
 
@@ -86,7 +89,11 @@ func findNotes(cmd *cobra.Command, args []string) {
 	if searchBook != "" {
 		book, err := clinote.FindNotebook(client.Config.Store(), ns, searchBook)
 		if err != nil {
-			fmt.Println("Error when trying to filter by notebook: ", err)
+			fmt.Printf("❌ Cannot filter by notebook '%s': %v\n", searchBook, err)
+			fmt.Println("💡 Available options:")
+			fmt.Println("   • List notebooks: clinote notebook list")
+			fmt.Println("   • Remove filter: omit --notebook flag")
+			fmt.Println("   • Check spelling and try again")
 			os.Exit(1)
 		}
 		filter.NotebookGUID = book.GUID
@@ -103,7 +110,11 @@ func findNotes(cmd *cobra.Command, args []string) {
 
 	nbs, err := clinote.GetNotebooks(client.Config.Store(), ns, false)
 	if err != nil {
-		fmt.Println("Failed to get all notebooks:", err)
+		fmt.Printf("❌ Cannot retrieve notebook list: %v\n", err)
+		fmt.Println("💡 Troubleshooting:")
+		fmt.Println("   • Check network connection")
+		fmt.Println("   • Verify authentication status")
+		fmt.Println("   • Try: clinote user login")
 		return
 	}
 

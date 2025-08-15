@@ -20,6 +20,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/TcM1911/clinote"
 	"github.com/spf13/cobra"
@@ -42,17 +43,20 @@ with the notebook flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		raw, err := cmd.Flags().GetBool("raw")
 		if err != nil {
-			fmt.Println("Error when paring raw flag:", err)
+			fmt.Printf("❌ Invalid raw flag value: %v\n", err)
+			fmt.Println("💡 Tip: Use --raw (no value needed) to edit XML content directly")
 			return
 		}
 		title, err := cmd.Flags().GetString("title")
 		if err != nil {
-			fmt.Println("Error parsing the title:", err)
+			fmt.Printf("❌ Failed to parse new title: %v\n", err)
+			fmt.Println("💡 Tip: Use --title \"New Title\" or -t \"New Title\"")
 			return
 		}
 		notebook, err := cmd.Flags().GetString("notebook")
 		if err != nil {
-			fmt.Println("Error parsing the notebook name:", err)
+			fmt.Printf("❌ Failed to parse notebook name: %v\n", err)
+			fmt.Println("💡 Tip: Use --notebook \"Notebook Name\" or -b \"Notebook Name\"")
 			return
 		}
 		recover, err := cmd.Flags().GetBool("recover")
@@ -63,7 +67,11 @@ with the notebook flag.`,
 		defer client.Close()
 		ns, err := client.GetNoteStore()
 		if err != nil {
-			fmt.Println("Failed to get notestore:", err)
+			fmt.Printf("❌ Cannot connect to Evernote: %v\n", err)
+			fmt.Println("💡 Troubleshooting:")
+			fmt.Println("   • Check internet connection")
+			fmt.Println("   • Verify authentication: clinote user login")
+			fmt.Println("   • Check credentials: clinote user list")
 			return
 		}
 		opts := clinote.DefaultNoteOption
@@ -74,13 +82,20 @@ with the notebook flag.`,
 			c := clinote.NewClient(client.Config, client.Config.Store(), ns, clinote.DefaultClientOptions)
 			err := clinote.EditNote(c, "", opts|clinote.UseRecoveryPointNote)
 			if err != nil {
-				fmt.Println("Error when edit recovery note:", err)
+				fmt.Printf("❌ Failed to recover previous note: %v\n", err)
+				fmt.Println("💡 Possible causes:")
+				fmt.Println("   • No recovery point available")
+				fmt.Println("   • Recovery file corrupted")
+				fmt.Println("   • Storage permission issues")
 				os.Exit(1)
 			}
 			return
 		}
 		if len(args) != 1 {
-			fmt.Println("Error, a note has to be given.")
+			fmt.Println("❌ Note identifier required")
+			fmt.Println("💡 Usage: clinote note edit \"Note Title\"")
+			fmt.Println("   • Use exact note title (case sensitive)")
+			fmt.Println("   • Or use note index from: clinote note list")
 			return
 		}
 		if title != "" {
@@ -94,7 +109,14 @@ with the notebook flag.`,
 			c := clinote.NewClient(client.Config, client.Config.Store(), ns, clinote.DefaultClientOptions)
 			err := clinote.EditNote(c, args[0], opts)
 			if err != nil {
-				fmt.Println("Error when editing the note:", err)
+				fmt.Printf("❌ Failed to edit note: %v\n", err)
+				fmt.Println("💡 Troubleshooting:")
+				fmt.Println("   • Check if note exists: clinote note list --search \"title\"")
+				fmt.Println("   • Verify editor: echo $EDITOR")
+				fmt.Println("   • Check permissions and network connectivity")
+				if strings.Contains(err.Error(), "not found") {
+					fmt.Println("   • Note may have been deleted or moved")
+				}
 				os.Exit(1)
 			}
 		}

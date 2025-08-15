@@ -50,7 +50,10 @@ func (*DefaultConfig) GetConfigFolder() string {
 	if _, err := os.Stat(configDir); os.IsNotExist(err) {
 		// Create folder
 		if err = os.MkdirAll(configDir, os.ModeDir|0700); err != nil {
-			fmt.Println("Error when creating config folder:", err)
+			fmt.Printf("❌ Cannot create config directory: %v\n", err)
+			fmt.Printf("💡 Check permissions for: %s\n", configDir)
+			fmt.Println("   • Ensure parent directory exists")
+			fmt.Println("   • Verify write permissions")
 			return ""
 		}
 	}
@@ -62,7 +65,10 @@ func (*DefaultConfig) GetCacheFolder() string {
 	if _, err := os.Stat(cacheDir); os.IsNotExist(err) {
 		// Create cache folder.
 		if err = os.MkdirAll(cacheDir, os.ModeDir|0700); err != nil {
-			fmt.Println("Error when creating cache folder:", err)
+			fmt.Printf("❌ Cannot create cache directory: %v\n", err)
+			fmt.Printf("💡 Check permissions for: %s\n", cacheDir)
+			fmt.Println("   • Ensure sufficient disk space")
+			fmt.Println("   • Verify write permissions")
 			return ""
 		}
 	}

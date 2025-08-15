@@ -51,7 +51,8 @@ func getNote(cmd *cobra.Command, args []string) {
 		opts |= clinote.RawNote
 	}
 	if err != nil {
-		fmt.Println("Error when paring raw flag:", err)
+		fmt.Printf("❌ Invalid raw flag value: %v\n", err)
+		fmt.Println("💡 Tip: Use --raw (no value needed) to display XML content")
 		return
 	}
 	client := defaultClient()
@@ -62,7 +63,12 @@ func getNote(cmd *cobra.Command, args []string) {
 	}
 	n, err := clinote.GetNoteWithContent(client.Config.Store(), ns, name)
 	if err != nil {
-		fmt.Println("Error when getting the note:", err.Error())
+		fmt.Printf("❌ Failed to retrieve note: %v\n", err)
+		fmt.Println("💡 Troubleshooting:")
+		fmt.Println("   • Check note title spelling (case sensitive)")
+		fmt.Println("   • Search for notes: clinote note list --search \"partial title\"")
+		fmt.Println("   • List all notes: clinote note list")
+		fmt.Println("   • Use note index from list instead of title")
 		os.Exit(1)
 	}
 	clinote.WriteNote(os.Stdout, n, opts)

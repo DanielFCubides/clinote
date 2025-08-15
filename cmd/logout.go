@@ -34,10 +34,14 @@ Logs a user out by removing the session token.`,
 		defer client.Close()
 		err := evernote.Logout(client.GetConfig())
 		if err != nil {
-			fmt.Println("Failed to logout:", err.Error())
+			fmt.Printf("❌ Logout failed: %v\n", err)
+			fmt.Println("💡 Troubleshooting:")
+			fmt.Println("   • Check if you're currently logged in")
+			fmt.Println("   • Try: clinote user list")
+			fmt.Println("   • Verify config permissions")
 			return
 		}
-		fmt.Println("Successfully logged out.")
+		fmt.Println("✅ Successfully logged out")
 	},
 }
 

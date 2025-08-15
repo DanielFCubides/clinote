@@ -54,7 +54,11 @@ func listNotebooks(sync bool) {
 	}
 	bs, err := clinote.GetNotebooks(client.Config.Store(), ns, sync)
 	if err != nil {
-		fmt.Println("Error when getting notebooks:", err)
+		fmt.Printf("❌ Cannot retrieve notebooks: %v\n", err)
+		fmt.Println("💡 Troubleshooting:")
+		fmt.Println("   • Check internet connection")
+		fmt.Println("   • Verify authentication: clinote user login")
+		fmt.Println("   • Check account status")
 		os.Exit(1)
 	}
 	clinote.WriteNotebookListing(os.Stdout, bs)

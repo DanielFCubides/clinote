@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/TcM1911/clinote"
 	"github.com/spf13/cobra"
@@ -38,26 +39,34 @@ flag.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		title, err := cmd.Flags().GetString("title")
 		if err != nil {
-			fmt.Println("Error when parsing note title:", err)
+			fmt.Printf("❌ Failed to parse note title: %v\n", err)
+			fmt.Println("💡 Tip: Use --title \"Your Note Title\" or -t \"Your Note Title\"")
 			return
 		}
 		edit, err := cmd.Flags().GetBool("edit")
 		if err != nil {
-			fmt.Println("Error when parsing edit flag:", err)
+			fmt.Printf("❌ Invalid edit flag value: %v\n", err)
+			fmt.Println("💡 Tip: Use --edit or -e (no value needed)")
 			return
 		}
 		if title == "" && !edit {
-			fmt.Println("Note title has to be given")
+			fmt.Println("❌ Note title is required when not using edit mode")
+			fmt.Println("💡 Options:")
+			fmt.Println("   • Add a title: clinote note new --title \"My Note\"")
+			fmt.Println("   • Use edit mode: clinote note new --edit")
 			return
 		}
 		notebook, err := cmd.Flags().GetString("notebook")
 		if err != nil {
-			fmt.Println("Error when parsing notebook name:", err)
+			fmt.Printf("❌ Failed to parse notebook name: %v\n", err)
+			fmt.Println("💡 Tip: Use --notebook \"Notebook Name\" or -b \"Notebook Name\"")
+			fmt.Println("   • List available notebooks: clinote notebook list")
 			return
 		}
 		raw, err := cmd.Flags().GetBool("raw")
 		if err != nil {
-			fmt.Println("Error when parsing raw parameter:", err)
+			fmt.Printf("❌ Invalid raw flag value: %v\n", err)
+			fmt.Println("💡 Tip: Use --raw (no value needed) to edit in XML format")
 			return
 		}
 		createNote(title, notebook, edit, raw)
@@ -85,7 +94,11 @@ func createNote(title, notebook string, edit, raw bool) {
 	if notebook != "" {
 		nb, err := clinote.FindNotebook(c.Store, c.NoteStore, notebook)
 		if err != nil {
-			fmt.Println("Error when searching for notebook:", err)
+			fmt.Printf("❌ Notebook '%s' not found: %v\n", notebook, err)
+			fmt.Println("💡 Available options:")
+			fmt.Println("   • List notebooks: clinote notebook list")
+			fmt.Println("   • Create new notebook: clinote notebook new \"Notebook Name\"")
+			fmt.Println("   • Use default notebook: omit --notebook flag")
 			return
 		}
 		note.Notebook = nb
@@ -96,9 +109,24 @@ func createNote(title, notebook string, edit, raw bool) {
 	}
 	if edit {
 		if err := clinote.CreateAndEditNewNote(c, note, opts); err != nil {
-			fmt.Println("Error when editing the note:", err)
+			fmt.Printf("❌ Failed to create and edit note: %v\n", err)
+			fmt.Println("💡 Troubleshooting:")
+			fmt.Println("   • Check if $EDITOR environment variable is set")
+			fmt.Println("   • Verify editor is installed and accessible")
+			fmt.Println("   • Try: export EDITOR=vim (or nano, code, etc.)")
+			fmt.Println("   • Check network connection for Evernote sync")
+			if strings.Contains(err.Error(), "recovery") {
+				fmt.Println("   • Recovery available: clinote note edit --recover")
+			}
 		}
 		return
 	}
-	clinote.SaveNewNote(c.NoteStore, note, raw)
+	err := clinote.SaveNewNote(c.NoteStore, note, raw)
+	if err != nil {
+		fmt.Printf("❌ Failed to save note: %v\n", err)
+		fmt.Println("💡 Troubleshooting:")
+		fmt.Println("   • Check network connection")
+		fmt.Println("   • Verify authentication: clinote user login")
+		fmt.Println("   • Check account quota and permissions")
+	}
 }

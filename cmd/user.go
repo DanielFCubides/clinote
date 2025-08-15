@@ -58,7 +58,12 @@ var userListCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		db, err := storage.Open((new(clinote.DefaultConfig)).GetConfigFolder())
 		if err != nil {
-			fmt.Println("Error when opening the database:", err.Error())
+			fmt.Printf("❌ Database connection failed: %v\n", err)
+			fmt.Println("💡 Troubleshooting:")
+			fmt.Println("   • Check disk space and permissions")
+			fmt.Println("   • Verify config directory exists")
+			fmt.Printf("   • Config location: %s\n", (new(clinote.DefaultConfig)).GetConfigFolder())
+			fmt.Println("   • Try: chmod 755 ~/.config/clinote")
 		}
 		listCredentials(db, cmd)
 	},
@@ -71,7 +76,12 @@ var userAddCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		db, err := storage.Open((new(clinote.DefaultConfig)).GetConfigFolder())
 		if err != nil {
-			fmt.Println("Error when opening the database:", err.Error())
+			fmt.Printf("❌ Database connection failed: %v\n", err)
+			fmt.Println("💡 Troubleshooting:")
+			fmt.Println("   • Check disk space and permissions")
+			fmt.Println("   • Verify config directory exists")
+			fmt.Printf("   • Config location: %s\n", (new(clinote.DefaultConfig)).GetConfigFolder())
+			fmt.Println("   • Try: chmod 755 ~/.config/clinote")
 		}
 		addCredential(db, cmd, args)
 	},
@@ -83,7 +93,12 @@ var userRmCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		db, err := storage.Open((new(clinote.DefaultConfig)).GetConfigFolder())
 		if err != nil {
-			fmt.Println("Error when opening the database:", err.Error())
+			fmt.Printf("❌ Database connection failed: %v\n", err)
+			fmt.Println("💡 Troubleshooting:")
+			fmt.Println("   • Check disk space and permissions")
+			fmt.Println("   • Verify config directory exists")
+			fmt.Printf("   • Config location: %s\n", (new(clinote.DefaultConfig)).GetConfigFolder())
+			fmt.Println("   • Try: chmod 755 ~/.config/clinote")
 		}
 		rmCredential(db, args)
 	},
@@ -95,7 +110,12 @@ var userSetCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		db, err := storage.Open((new(clinote.DefaultConfig)).GetConfigFolder())
 		if err != nil {
-			fmt.Println("Error when opening the database:", err.Error())
+			fmt.Printf("❌ Database connection failed: %v\n", err)
+			fmt.Println("💡 Troubleshooting:")
+			fmt.Println("   • Check disk space and permissions")
+			fmt.Println("   • Verify config directory exists")
+			fmt.Printf("   • Config location: %s\n", (new(clinote.DefaultConfig)).GetConfigFolder())
+			fmt.Println("   • Try: chmod 755 ~/.config/clinote")
 		}
 		setConfig(db, db, args)
 	},
@@ -130,24 +150,35 @@ func setCredential(store clinote.UserCredentialStore, db clinote.Storager, strIn
 	}
 	creds, err := clinote.GetAllCredentials(store)
 	if err != nil {
-		fmt.Println("Error when getting credential list:", err)
+		fmt.Printf("❌ Failed to load credentials: %v\n", err)
+		fmt.Println("💡 Try: clinote user add --name \"MyAccount\" --secret \"your-token\"")
 		return
 	}
 	// Index is a 1 based index for the user.
 	if index < 1 || index > len(creds) {
-		fmt.Println("Error index out-of-range")
+		fmt.Printf("❌ Credential index %d is invalid\n", index)
+		fmt.Println("💡 Valid options:")
+		fmt.Println("   • View available credentials: clinote user list")
+		fmt.Printf("   • Use index between 1 and %d\n", len(creds))
 		return
 	}
 	settings, err := db.GetSettings()
 	if err != nil {
-		fmt.Println("Error when getting the settings:", err)
+		fmt.Printf("❌ Cannot load user settings: %v\n", err)
+		fmt.Println("💡 Settings may be corrupted. Try:")
+		fmt.Println("   • Re-add credentials: clinote user add")
+		fmt.Println("   • Check config permissions")
 		return
 	}
 	settings.APIKey = creds[index-1].Secret
 	settings.Credential = creds[index-1]
 	err = db.StoreSettings(settings)
 	if err != nil {
-		fmt.Println("Error when saving the settings:", err)
+		fmt.Printf("❌ Failed to save settings: %v\n", err)
+		fmt.Println("💡 Check:")
+		fmt.Println("   • Disk space available")
+		fmt.Println("   • Write permissions to config directory")
+		fmt.Println("   • Config directory not read-only")
 	}
 }
 
@@ -165,12 +196,17 @@ func printConfigOptions() {
 func listCredentials(store clinote.UserCredentialStore, cmd *cobra.Command) {
 	includeToken, err := cmd.Flags().GetBool("show-secret")
 	if err != nil {
-		fmt.Printf("Error when parsing arguments: %s\n", err.Error())
+		fmt.Printf("❌ Invalid command arguments: %v\n", err)
+		fmt.Println("💡 Tip: Use --show-secret to include tokens in output")
 		return
 	}
 	list, err := clinote.GetAllCredentials(store)
 	if err != nil {
-		fmt.Println("Failed to get all credentials:", err)
+		fmt.Printf("❌ Cannot retrieve credentials: %v\n", err)
+		fmt.Println("💡 Possible causes:")
+		fmt.Println("   • No credentials configured")
+		fmt.Println("   • Database corruption")
+		fmt.Println("   • Add credential: clinote user add")
 		return
 	}
 	if includeToken {
@@ -202,11 +238,12 @@ func rmCredential(store clinote.UserCredentialStore, args []string) {
 }
 
 func addCredential(store clinote.UserCredentialStore, cmd *cobra.Command, args []string) {
-	name := parseStringFlag(cmd, "name", "Error when parsing the name:", "Please enter a name: ")
-	secret := parseStringFlag(cmd, "secret", "Error when parsing the secret:", "Please enter the access token: ")
+	name := parseStringFlag(cmd, "name", "❌ Invalid name parameter:", "Please enter a name: ")
+	secret := parseStringFlag(cmd, "secret", "❌ Invalid secret parameter:", "Please enter the access token: ")
 	sandbox, err := cmd.Flags().GetBool("sandbox")
 	if err != nil {
-		fmt.Println("Error when parsing the command flag:", err)
+		fmt.Printf("❌ Invalid sandbox flag: %v\n", err)
+		fmt.Println("💡 Tip: Use --sandbox for testing environment (no value needed)")
 		return
 	}
 	credType := clinote.EvernoteCredential
@@ -215,7 +252,12 @@ func addCredential(store clinote.UserCredentialStore, cmd *cobra.Command, args [
 	}
 	err = clinote.AddNewCredential(store, name, secret, credType)
 	if err != nil {
-		fmt.Println("Error when adding the new credentials:", err)
+		fmt.Printf("❌ Failed to save new credential: %v\n", err)
+		fmt.Println("💡 Troubleshooting:")
+		fmt.Println("   • Verify token is valid and not expired")
+		fmt.Println("   • Check database permissions")
+		fmt.Println("   • Ensure credential name is unique")
+		fmt.Println("   • Get token: https://dev.evernote.com/doc/articles/dev_tokens.php")
 	}
 }
 
@@ -223,7 +265,13 @@ func parseStringFlag(cmd *cobra.Command, flag, parseErr, scanLine string) string
 	var name string
 	n, err := cmd.Flags().GetString(flag)
 	if err != nil {
-		fmt.Println(parseErr, err)
+		fmt.Printf("%s %v\n", parseErr, err)
+		if flag == "secret" {
+			fmt.Println("💡 Tip: Use --secret \"your-token\" or enter when prompted")
+			fmt.Println("   • Get token: https://dev.evernote.com/doc/articles/dev_tokens.php")
+		} else {
+			fmt.Printf("💡 Tip: Use --%s \"value\" or enter when prompted\n", flag)
+		}
 	}
 	if n == "" {
 		scanner := bufio.NewScanner(os.Stdin)

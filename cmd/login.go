@@ -36,7 +36,12 @@ Login authorizes CLInote to the server using OAuth.`,
 		if err == nil {
 			fmt.Println("Authentication successful!")
 		} else {
-			fmt.Println("Authentication failed:", err.Error())
+			fmt.Printf("❌ Login failed: %v\n", err)
+			fmt.Println("💡 Troubleshooting:")
+			fmt.Println("   • Check internet connection")
+			fmt.Println("   • Verify browser opened OAuth page")
+			fmt.Println("   • Complete authorization in browser")
+			fmt.Println("   • Try: clinote user add (for token-based auth)")
 		}
 	},
 }

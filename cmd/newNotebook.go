@@ -43,7 +43,9 @@ func init() {
 
 func createNotebook(cmd *cobra.Command, args []string) {
 	if len(args) != 1 {
-		fmt.Println("No notebook name given")
+		fmt.Println("❌ Notebook name required")
+		fmt.Println("💡 Usage: clinote notebook new \"Notebook Name\"")
+		fmt.Println("   • Use quotes if name contains spaces")
 		os.Exit(1)
 	}
 	nb := &clinote.Notebook{}
@@ -51,7 +53,8 @@ func createNotebook(cmd *cobra.Command, args []string) {
 
 	stack, err := cmd.Flags().GetString("stack")
 	if err != nil {
-		fmt.Println("Error when parsing stack name:", err)
+		fmt.Printf("❌ Invalid stack parameter: %v\n", err)
+		fmt.Println("💡 Tip: Use --stack \"Stack Name\" to organize notebooks")
 		os.Exit(1)
 	}
 	if stack != "" {
@@ -60,7 +63,8 @@ func createNotebook(cmd *cobra.Command, args []string) {
 
 	d, err := cmd.Flags().GetBool("default")
 	if err != nil {
-		fmt.Println("Error when parsing default value:", err)
+		fmt.Printf("❌ Invalid default flag: %v\n", err)
+		fmt.Println("💡 Tip: Use --default (no value needed) to make this the default notebook")
 		os.Exit(1)
 	}
 
@@ -73,7 +77,12 @@ func createNotebook(cmd *cobra.Command, args []string) {
 	}
 	err = clinote.CreateNotebook(ns, nb, d)
 	if err != nil {
-		fmt.Println("Error when creating the notebook:", err)
+		fmt.Printf("❌ Failed to create notebook: %v\n", err)
+		fmt.Println("💡 Possible causes:")
+		fmt.Println("   • Notebook name already exists")
+		fmt.Println("   • Invalid characters in name")
+		fmt.Println("   • Network connectivity issues")
+		fmt.Println("   • Account quota exceeded")
 		os.Exit(1)
 	}
 }

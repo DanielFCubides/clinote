@@ -36,14 +36,17 @@ To move the notebook to another stack, use the stack flag to
 define the new stack.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
-			fmt.Println("Error, a notebook has to be given.")
+			fmt.Println("❌ Notebook name required")
+			fmt.Println("💡 Usage: clinote notebook edit \"Notebook Name\"")
+			fmt.Println("   • List notebooks: clinote notebook list")
 			return
 		}
 		change := false
 		notebook := new(clinote.Notebook)
 		name, err := cmd.Flags().GetString("name")
 		if err != nil {
-			fmt.Println("Error when parsing new notebook name:", err)
+			fmt.Printf("❌ Invalid new name parameter: %v\n", err)
+			fmt.Println("💡 Tip: Use --name \"New Notebook Name\"")
 			return
 		}
 		if name != "" {
@@ -53,7 +56,8 @@ define the new stack.`,
 
 		stack, err := cmd.Flags().GetString("stack")
 		if err != nil {
-			fmt.Println("Error when parsing the new stack:", err)
+			fmt.Printf("❌ Invalid stack parameter: %v\n", err)
+			fmt.Println("💡 Tip: Use --stack \"Stack Name\" to organize notebooks")
 			return
 		}
 		if stack != "" {
@@ -62,7 +66,10 @@ define the new stack.`,
 		}
 
 		if !change {
-			fmt.Println("No changes detected, aborting.")
+			fmt.Println("⚠️  No changes specified")
+			fmt.Println("💡 Available options:")
+			fmt.Println("   • Change name: --name \"New Name\"")
+			fmt.Println("   • Change stack: --stack \"Stack Name\"")
 			return
 		}
 		client := defaultClient()
@@ -73,9 +80,15 @@ define the new stack.`,
 		}
 		err = clinote.UpdateNotebook(client.Config.Store(), ns, args[0], notebook)
 		if err != nil {
-			fmt.Println("Error when editing the notebook:", err)
+			fmt.Printf("❌ Failed to update notebook: %v\n", err)
+			fmt.Println("💡 Possible causes:")
+			fmt.Println("   • New name conflicts with existing notebook")
+			fmt.Println("   • Network connectivity issues")
+			fmt.Println("   • Insufficient permissions")
+			fmt.Println("   • Notebook not found")
 			os.Exit(1)
 		}
+		fmt.Println("✅ Notebook updated successfully")
 	},
 }
 

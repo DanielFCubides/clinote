@@ -32,12 +32,16 @@ var deleteNoteCmd = &cobra.Command{
 To expunge the note you need to use the official client or the web client.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 1 {
-			fmt.Println("Error, a note title has to be given")
+			fmt.Println("❌ Note identifier required")
+			fmt.Println("💡 Usage: clinote note delete \"Note Title\"")
+			fmt.Println("   • Use exact note title (case sensitive)")
+			fmt.Println("   • Or use note index from: clinote note list")
 			return
 		}
 		nb, err := cmd.Flags().GetString("notebook")
 		if err != nil {
-			fmt.Println("Error when parsing the notebook name:", err)
+			fmt.Printf("❌ Invalid notebook parameter: %v\n", err)
+			fmt.Println("💡 Tip: Use --notebook \"Notebook Name\" to specify source")
 			return
 		}
 		client := defaultClient()
@@ -48,7 +52,12 @@ To expunge the note you need to use the official client or the web client.`,
 		}
 		err = clinote.DeleteNote(client.Config.Store(), ns, args[0], nb)
 		if err != nil {
-			fmt.Println("Error when deleting the note:", err)
+			fmt.Printf("❌ Failed to delete note: %v\n", err)
+			fmt.Println("💡 Possible causes:")
+			fmt.Println("   • Note not found or already deleted")
+			fmt.Println("   • Network connectivity issues")
+			fmt.Println("   • Insufficient permissions")
+			fmt.Println("   • Note is being edited elsewhere")
 			os.Exit(1)
 		}
 	},
